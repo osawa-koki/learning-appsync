@@ -13,7 +13,9 @@ export class IndexStack extends cdk.Stack {
 
     const api = new appsync.GraphqlApi(this, 'HelloWorldApi', {
       name: 'HelloWorldApi',
-      schema: appsync.SchemaFile.fromAsset(path.join(__dirname, 'schema.graphql')),
+      definition: {
+        schema: appsync.SchemaFile.fromAsset(path.join(__dirname, 'schema.graphql')),
+      },
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.API_KEY,
