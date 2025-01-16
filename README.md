@@ -16,6 +16,28 @@ cdk synth
 cdk deploy --require-approval never --all
 ```
 
+デプロイされたAppSyncをテストしてみます。  
+
+```shell
+source .env
+
+OUTPUT=$(aws cloudformation describe-stacks --stack-name ${BASE_STACK_NAME} --query "Stacks[0].Outputs[]" --output json)
+APP_SYNC_URL=$(echo $OUTPUT | jq -r '.[] | select(.OutputKey=="GraphQLAPIURL") | .OutputValue')
+APP_SYNC_KEY=$(echo $OUTPUT | jq -r '.[] | select(.OutputKey=="GraphQLAPIKey") | .OutputValue')
+
+echo "APP_SYNC_URL: ${APP_SYNC_URL}"
+echo "APP_SYNC_KEY: ${APP_SYNC_KEY}"
+```
+
+エンドポイント(`${APP_SYNC_URL}`)にアクセスして、`query { hello }`と`query { goodbye }`と`query { hello, goodbye }`を実行してみます。  
+ヘッダーに`x-api-key: ${APP_SYNC_KEY}`を追加してください。  
+
+```shell
+curl -X POST ${APP_SYNC_URL} -H "x-api-key: ${APP_SYNC_KEY}" -H "Content-Type: application/json" -d '{"query": "query { hello }"}'
+curl -X POST ${APP_SYNC_URL} -H "x-api-key: ${APP_SYNC_KEY}" -H "Content-Type: application/json" -d '{"query": "query { goodbye }"}'
+curl -X POST ${APP_SYNC_URL} -H "x-api-key: ${APP_SYNC_KEY}" -H "Content-Type: application/json" -d '{"query": "query { hello, goodbye }"}'
+```
+
 ---
 
 GitHub Actionsでデプロイするためには、以下のシークレットを設定してください。  
